@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Q3 Roadmap Dashboard</title>
+<style>
+  :root {
+    --bg: #0f1420;
+    --card: #1b2334;
+    --line: #2b3549;
+    --text: #e8edf7;
+    --muted: #97a3ba;
+    --accent: #5aa9ff;
+    --good: #37d399;
+    --warn: #f5b942;
+    --bad: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 24px 64px;
+    background: radial-gradient(1200px 600px at 20% -10%, #1d2942, var(--bg));
+    color: var(--text);
+    font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 32px 0 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    text-align: left;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+  .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .card .value { font-size: 26px; font-weight: 600; margin-top: 6px; }
+  .card .note { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .card[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .filters .legend { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; margin-right: 4px; }
+  .chip {
+    border: 1px solid var(--line);
+    background: #212b3f;
+    color: var(--text);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #08111f; font-weight: 600; }
+  .chip .count { opacity: .75; margin-left: 6px; }
+  .filters .spacer { flex: 1; }
+  .filters input[type="search"] {
+    background: #212b3f;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 10px;
+    min-width: 190px;
+  }
+  .filters input[type="search"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { background: #212b3f; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  tbody tr:last-child td { border-bottom: none; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; background: #263048; color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .pill.on-track { background: #16281f; color: var(--good); }
+  .pill.at-risk  { background: #2a2313; color: var(--warn); }
+  .pill.blocked  { background: #2a1616; color: var(--bad); }
+  .empty { color: var(--muted); text-align: center; padding: 22px 14px; }
+  .status-line { color: var(--muted); font-size: 13px; margin: 10px 2px 0; }
+
+  ul.risks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  ul.risks li { background: var(--card); border: 1px solid var(--line); border-left-width: 3px; border-radius: 10px; padding: 12px 16px; }
+  ul.risks li.at-risk { border-left-color: var(--warn); }
+  ul.risks li.blocked { border-left-color: var(--bad); }
+  ul.risks li.on-track { border-left-color: var(--good); }
+  ul.risks .who { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+  .readiness { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  footer { color: var(--muted); font-size: 12px; margin-top: 32px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Q3 Roadmap Dashboard</h1>
+  <p class="sub">A static view of <code>Q3-Roadmap.md</code>. Open the file directly in a browser — no build step, no server.</p>
+
+  <h2>Overview</h2>
+  <div class="cards" id="summary"></div>
+
+  <h2>Milestones</h2>
+  <div class="filters" role="group" aria-label="Filter milestones by status">
+    <span class="legend">Status</span>
+    <div id="statusChips" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    <span class="spacer"></span>
+    <input type="search" id="search" placeholder="Filter by name or owner…" aria-label="Filter milestones by name or owner" />
+  </div>
+  <p class="status-line" id="resultCount" role="status" aria-live="polite"></p>
+  <table id="milestones">
+    <thead>
+      <tr>
+        <th>Milestone</th>
+        <th>Owner</th>
+        <th>Target</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Risks</h2>
+  <ul class="risks" id="risks"></ul>
+
+  <h2>Launch readiness</h2>
+  <div class="readiness" id="readiness"></div>
+
+  <footer>Milestone data mirrors <code>Q3-Roadmap.md</code>. Update both together when the roadmap changes.</footer>
+</div>
+
+<script>
+const MILESTONES = [
+  { name: "Prototype canvas polish",     owner: "Maya Johnson",  target: "July 12", status: "On track" },
+  { name: "M365 grounding smoke pass",   owner: "Elena Volkov",  target: "July 15", status: "At risk" },
+  { name: "GitHub export validation",    owner: "Jordan Blake",  target: "July 18", status: "On track" },
+  { name: "Dogfood readiness review",    owner: "Liam Chen",     target: "July 21", status: "Blocked" }
+];
+
+const RISKS = [
+  { milestone: "M365 grounding smoke pass", text: "Tenant fixture data is still being prepared." },
+  { milestone: "Dogfood readiness review",  text: "Blocked until the QA smoke pack has results from at least three testers." },
+  { milestone: "GitHub export validation",  text: "Depends on disposable test repositories being available for QA." }
+];
+
+const READINESS = {
+  overall: "Yellow",
+  note: "The team should prioritize M365 grounding and GitHub export validation before expanding scenario coverage."
+};
+
+const STATUSES = ["On track", "At risk", "Blocked"];
+const ALL = "all";
+
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+const statusClass = s => slug(s);
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const state = { status: ALL, query: "" };
+
+function countByStatus(status) {
+  return MILESTONES.filter(m => m.status === status).length;
+}
+
+function statusOf(milestoneName) {
+  return MILESTONES.find(m => m.name === milestoneName)?.status || "";
+}
+
+function visibleMilestones() {
+  const q = state.query.trim().toLowerCase();
+  return MILESTONES.filter(m => {
+    const statusOk = state.status === ALL || m.status === state.status;
+    const queryOk = !q || m.name.toLowerCase().includes(q) || m.owner.toLowerCase().includes(q);
+    return statusOk && queryOk;
+  });
+}
+
+function renderSummary() {
+  const cards = [
+    { status: ALL,         label: "Milestones", value: MILESTONES.length,       note: "tracked this quarter", cls: "" },
+    { status: "On track",  label: "On track",   value: countByStatus("On track"), note: "no action needed",   cls: "good" },
+    { status: "At risk",   label: "At risk",    value: countByStatus("At risk"),  note: "needs attention",    cls: "warn" },
+    { status: "Blocked",   label: "Blocked",    value: countByStatus("Blocked"),  note: "waiting on a dependency", cls: "bad" }
+  ];
+  document.getElementById("summary").innerHTML = cards.map(c => `
+    <button type="button" class="card" data-status="${escapeHtml(c.status)}"
+            aria-pressed="${state.status === c.status}"
+            title="Show ${c.status === ALL ? "all milestones" : c.label.toLowerCase() + " milestones"}">
+      <div class="label">${escapeHtml(c.label)}</div>
+      <div class="value ${c.cls}">${c.value}</div>
+      <div class="note">${escapeHtml(c.note)}</div>
+    </button>`).join("");
+}
+
+function renderChips() {
+  const chips = [{ value: ALL, label: "All", count: MILESTONES.length }]
+    .concat(STATUSES.map(s => ({ value: s, label: s, count: countByStatus(s) })));
+  document.getElementById("statusChips").innerHTML = chips.map(c => `
+    <button type="button" class="chip" data-status="${escapeHtml(c.value)}" aria-pressed="${state.status === c.value}">
+      ${escapeHtml(c.label)}<span class="count">${c.count}</span>
+    </button>`).join("");
+}
+
+function renderMilestones() {
+  const rows = visibleMilestones();
+  const tbody = document.querySelector("#milestones tbody");
+  tbody.innerHTML = rows.length
+    ? rows.map(m => `
+      <tr>
+        <td>${escapeHtml(m.name)}</td>
+        <td>${escapeHtml(m.owner)}</td>
+        <td>${escapeHtml(m.target)}</td>
+        <td><span class="pill ${statusClass(m.status)}">${escapeHtml(m.status)}</span></td>
+      </tr>`).join("")
+    : `<tr><td class="empty" colspan="4">No milestones match this filter.</td></tr>`;
+
+  const scope = state.status === ALL ? "" : ` with status “${state.status}”`;
+  const search = state.query.trim() ? ` matching “${state.query.trim()}”` : "";
+  document.getElementById("resultCount").textContent =
+    `Showing ${rows.length} of ${MILESTONES.length} milestones${scope}${search}.`;
+}
+
+function renderRisks() {
+  const visible = new Set(visibleMilestones().map(m => m.name));
+  const shown = RISKS.filter(r => visible.has(r.milestone));
+  const list = document.getElementById("risks");
+  list.innerHTML = shown.length
+    ? shown.map(r => `
+      <li class="${statusClass(statusOf(r.milestone))}">
+        ${escapeHtml(r.text)}
+        <span class="who">${escapeHtml(r.milestone)} — ${escapeHtml(statusOf(r.milestone))}</span>
+      </li>`).join("")
+    : `<li class="empty">No risks recorded for the current filter.</li>`;
+}
+
+function renderReadiness() {
+  const cls = { Green: "good", Yellow: "warn", Red: "bad" }[READINESS.overall] || "";
+  document.getElementById("readiness").innerHTML =
+    `<div class="label" style="color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em">Overall status</div>
+     <div class="value ${cls}" style="font-size:26px;font-weight:600;margin:6px 0 8px">${escapeHtml(READINESS.overall)}</div>
+     <div>${escapeHtml(READINESS.note)}</div>`;
+}
+
+function render() {
+  renderSummary();
+  renderChips();
+  renderMilestones();
+  renderRisks();
+}
+
+function setStatus(status) {
+  const next = STATUSES.includes(status) ? status : ALL;
+  state.status = next;
+  const hash = next === ALL ? "" : `#status=${slug(next)}`;
+  if (hash !== location.hash) history.replaceState(null, "", location.pathname + location.search + hash);
+  render();
+}
+
+function statusFromHash() {
+  const match = /(?:^#|&)status=([^&]+)/.exec(location.hash);
+  if (!match) return ALL;
+  const wanted = decodeURIComponent(match[1]).toLowerCase();
+  return STATUSES.find(s => slug(s) === wanted) || ALL;
+}
+
+document.addEventListener("click", e => {
+  const btn = e.target.closest("[data-status]");
+  if (!btn) return;
+  const clicked = btn.dataset.status;
+  setStatus(clicked === state.status ? ALL : clicked);
+});
+
+document.getElementById("search").addEventListener("input", e => {
+  state.query = e.target.value;
+  renderMilestones();
+  renderRisks();
+});
+
+window.addEventListener("hashchange", () => { state.status = statusFromHash(); render(); });
+
+state.status = statusFromHash();
+renderReadiness();
+render();
+</script>
+</body>
+</html>
