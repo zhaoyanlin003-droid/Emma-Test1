@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feature Request Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <h1>Feature Request Dashboard</h1>
+    <p class="subtitle">Disposable Code Tab QA repo fixture</p>
+
+    <label for="priorityFilter">Priority</label>
+    <select id="priorityFilter">
+      <option value="all">All</option>
+      <option value="High">High</option>
+      <option value="Medium">Medium</option>
+      <option value="Low">Low</option>
+    </select>
+
+    <section id="cards" class="cards" aria-live="polite"></section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

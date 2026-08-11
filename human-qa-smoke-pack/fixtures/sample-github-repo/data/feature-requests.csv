@@ -1,0 +1,6 @@
+id,title,priority,status,owner
+FR-101,Add export to CSV,High,Planned,Maya
+FR-102,Improve empty state copy,Medium,In Progress,Elena
+FR-103,Add keyboard shortcuts,Low,Backlog,Jordan
+FR-104,Fix chart tooltip overlap,High,In Progress,Liam
+FR-105,Add dark mode,Medium,Planned,Nina
