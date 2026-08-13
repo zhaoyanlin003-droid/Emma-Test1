@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Launch Checklist</title>
+<style>
+  :root {
+    --ink: #16202c;
+    --muted: #6b7a8d;
+    --line: #dfe5ec;
+    --accent: #2f6fed;
+    --ok: #17915f;
+    --bg: #eef2f7;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 32px 16px 64px;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.5 "Segoe UI", system-ui, Arial, sans-serif;
+  }
+
+  .page { max-width: 860px; margin: 0 auto; }
+
+  header h1 { margin: 0 0 4px; font-size: 1.75rem; }
+  header p { margin: 0; color: var(--muted); }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+
+  .launch-meta { display: flex; flex-wrap: wrap; gap: 16px; }
+  .launch-meta div { flex: 1 1 220px; }
+
+  label.field {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  input[type="text"], input[type="date"] {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font: inherit;
+    color: inherit;
+    background: #fff;
+  }
+
+  input:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .overall-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .bar {
+    height: 10px;
+    background: var(--bg);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .bar > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    transition: width 0.2s ease;
+  }
+
+  .bar.complete > span { background: var(--ok); }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+
+  button {
+    padding: 9px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  button:hover { border-color: #b9c4d2; background: #f6f8fb; }
+
+  section h2 { margin: 0; font-size: 1.15rem; }
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .tally {
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  .hint { color: var(--muted); font-size: 0.9rem; margin: 4px 0 14px; }
+
+  ul { list-style: none; margin: 0; padding: 0; }
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  li input[type="checkbox"] { width: 17px; height: 17px; flex: none; cursor: pointer; }
+
+  li label { flex: 1; cursor: pointer; }
+
+  li.done label { text-decoration: line-through; color: var(--muted); }
+
+  .owner {
+    flex: none;
+    font-size: 0.75rem;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--muted);
+  }
+
+  .remove {
+    flex: none;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 2px 6px;
+  }
+
+  .remove:hover { color: #c0392b; background: none; }
+
+  .add-row { display: flex; gap: 8px; margin-top: 14px; }
+
+  footer { color: var(--muted); font-size: 0.85rem; margin-top: 24px; text-align: center; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .toolbar, .add-row, .remove, footer { display: none !important; }
+    .card { border-color: #bbb; break-inside: avoid; }
+    input { border: 0; padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Team Launch Checklist</h1>
+    <p>Track a launch through planning, content, approvals, and launch day.</p>
+  </header>
+
+  <div class="card launch-meta">
+    <div>
+      <label class="field" for="launchName">Launch</label>
+      <input type="text" id="launchName" placeholder="e.g. Project Nebula">
+    </div>
+    <div>
+      <label class="field" for="launchDate">Target date</label>
+      <input type="date" id="launchDate">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="overall-head">
+      <strong id="overallLabel">0 of 0 complete</strong>
+      <span class="tally" id="remainingLabel"></span>
+    </div>
+    <div class="bar" id="overallBar"><span></span></div>
+
+    <div class="toolbar">
+      <button type="button" id="exportBtn">Export JSON</button>
+      <button type="button" id="importBtn">Import JSON</button>
+      <button type="button" id="printBtn">Print</button>
+      <button type="button" id="resetBtn">Reset to template</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+  </div>
+
+  <div id="sections"></div>
+
+  <footer>Saved in this browser only (localStorage). Use Export JSON to share progress with the team.</footer>
+</div>
+
+<script>
+"use strict";
+
+const STORAGE_KEY = "team-launch-checklist-app:v1";
+
+const TEMPLATE = [
+  {
+    id: "planning",
+    title: "Planning",
+    hint: "Agree what is shipping, when, and who owns it.",
+    items: [
+      ["Write the launch brief and success criteria", "PM"],
+      ["Lock the scope and confirm the target date", "PM"],
+      ["Name a directly responsible owner per workstream", "PM"],
+      ["Define the metrics and set up dashboards", "Data"],
+      ["Write the rollback and contingency plan", "Eng"],
+      ["Schedule the go / no-go meeting", "PM"]
+    ]
+  },
+  {
+    id: "content",
+    title: "Content",
+    hint: "Everything a customer will read, watch, or search for.",
+    items: [
+      ["Finalize product copy and in-app messaging", "Content"],
+      ["Publish help docs and release notes", "Docs"],
+      ["Draft and review the announcement blog post", "Marketing"],
+      ["Produce screenshots, demo video, and social assets", "Design"],
+      ["Schedule the announcement email", "Marketing"],
+      ["Prepare support macros and the FAQ", "Support"]
+    ]
+  },
+  {
+    id: "approvals",
+    title: "Approvals",
+    hint: "Sign-offs required before anything ships.",
+    items: [
+      ["Legal and compliance review complete", "Legal"],
+      ["Security and privacy review complete", "Security"],
+      ["Brand and design review signed off", "Design"],
+      ["Engineering readiness review passed", "Eng"],
+      ["Pricing and billing changes approved", "Finance"],
+      ["Executive sponsor gives final go / no-go", "Exec"]
+    ]
+  },
+  {
+    id: "launch-day",
+    title: "Launch day",
+    hint: "The runbook for the day itself.",
+    items: [
+      ["Confirm go / no-go with every owner on the morning call", "PM"],
+      ["Enable the feature flag or deploy to production", "Eng"],
+      ["Verify smoke tests and monitoring dashboards", "Eng"],
+      ["Publish the blog, email, and social posts", "Marketing"],
+      ["Notify support and open the escalation channel", "Support"],
+      ["Announce the launch in the team channel", "PM"],
+      ["Schedule the 48-hour metrics review and retro", "PM"]
+    ]
+  }
+];
+
+function makeId() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+function freshState() {
+  return {
+    launchName: "",
+    launchDate: "",
+    sections: TEMPLATE.map((section) => ({
+      id: section.id,
+      title: section.title,
+      hint: section.hint,
+      items: section.items.map(([text, owner]) => ({ id: makeId(), text, owner, done: false }))
+    }))
+  };
+}
+
+// Accepts anything shaped like a checklist so hand-edited exports still load.
+function normalize(raw) {
+  if (!raw || !Array.isArray(raw.sections) || raw.sections.length === 0) return null;
+
+  return {
+    launchName: typeof raw.launchName === "string" ? raw.launchName : "",
+    launchDate: typeof raw.launchDate === "string" ? raw.launchDate : "",
+    sections: raw.sections.map((section, i) => ({
+      id: typeof section.id === "string" ? section.id : "section-" + i,
+      title: typeof section.title === "string" ? section.title : "Section " + (i + 1),
+      hint: typeof section.hint === "string" ? section.hint : "",
+      items: Array.isArray(section.items)
+        ? section.items
+            .map((item) => ({
+              id: makeId(),
+              text: String(item && item.text ? item.text : ""),
+              owner: String(item && item.owner ? item.owner : ""),
+              done: Boolean(item && item.done)
+            }))
+            .filter((item) => item.text !== "")
+        : []
+    }))
+  };
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = normalize(JSON.parse(raw));
+      if (parsed) return parsed;
+    }
+  } catch (err) {
+    console.warn("Could not read the saved checklist; starting from the template.", err);
+  }
+  return freshState();
+}
+
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (err) {
+    console.warn("Could not save the checklist.", err);
+  }
+}
+
+let state = load();
+
+const sectionsEl = document.getElementById("sections");
+const launchNameEl = document.getElementById("launchName");
+const launchDateEl = document.getElementById("launchDate");
+
+function buildItem(section, item) {
+  const li = document.createElement("li");
+  if (item.done) li.className = "done";
+
+  const box = document.createElement("input");
+  box.type = "checkbox";
+  box.checked = item.done;
+  box.id = "item-" + item.id;
+  // Toggling updates in place rather than re-rendering, so checking a box never
+  // discards text someone is typing into an "Add a task" field.
+  box.addEventListener("change", () => {
+    item.done = box.checked;
+    li.classList.toggle("done", item.done);
+    save();
+    refreshCounts();
+  });
+
+  const label = document.createElement("label");
+  label.htmlFor = box.id;
+  label.textContent = item.text;
+
+  li.append(box, label);
+
+  if (item.owner) {
+    const owner = document.createElement("span");
+    owner.className = "owner";
+    owner.textContent = item.owner;
+    li.appendChild(owner);
+  }
+
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "remove";
+  remove.textContent = "\u00d7";
+  remove.title = "Remove this task";
+  remove.setAttribute("aria-label", "Remove " + item.text);
+  remove.addEventListener("click", () => {
+    section.items = section.items.filter((candidate) => candidate.id !== item.id);
+    save();
+    render();
+  });
+
+  li.appendChild(remove);
+  return li;
+}
+
+function buildSection(section) {
+  const wrapper = document.createElement("section");
+  wrapper.className = "card";
+
+  const head = document.createElement("div");
+  head.className = "section-head";
+
+  const heading = document.createElement("h2");
+  heading.textContent = section.title;
+
+  const doneCount = section.items.filter((item) => item.done).length;
+  const tally = document.createElement("span");
+  tally.className = "tally";
+  tally.textContent = doneCount + " / " + section.items.length;
+
+  head.append(heading, tally);
+
+  const hint = document.createElement("p");
+  hint.className = "hint";
+  hint.textContent = section.hint;
+
+  const list = document.createElement("ul");
+  section.items.forEach((item) => list.appendChild(buildItem(section, item)));
+
+  const addRow = document.createElement("div");
+  addRow.className = "add-row";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = "Add a task to " + section.title + "\u2026";
+
+  const addBtn = document.createElement("button");
+  addBtn.type = "button";
+  addBtn.textContent = "Add";
+
+  function addTask() {
+    const text = input.value.trim();
+    if (!text) return;
+    section.items.push({ id: makeId(), text, owner: "", done: false });
+    input.value = "";
+    save();
+    render();
+  }
+
+  addBtn.addEventListener("click", addTask);
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") addTask();
+  });
+
+  addRow.append(input, addBtn);
+  wrapper.append(head, hint, list, addRow);
+  return wrapper;
+}
+
+function refreshCounts() {
+  state.sections.forEach((section, i) => {
+    const tally = sectionsEl.children[i].querySelector(".tally");
+    const done = section.items.filter((item) => item.done).length;
+    tally.textContent = done + " / " + section.items.length;
+  });
+
+  const all = state.sections.flatMap((section) => section.items);
+  const done = all.filter((item) => item.done).length;
+  const pct = all.length ? Math.round((done / all.length) * 100) : 0;
+
+  document.getElementById("overallLabel").textContent =
+    done + " of " + all.length + " complete (" + pct + "%)";
+  document.getElementById("remainingLabel").textContent =
+    all.length - done === 0 && all.length > 0 ? "All done" : all.length - done + " remaining";
+
+  const bar = document.getElementById("overallBar");
+  bar.classList.toggle("complete", all.length > 0 && done === all.length);
+  bar.firstElementChild.style.width = pct + "%";
+}
+
+function render() {
+  // Carry over anything half-typed in the add-task fields across a rebuild.
+  const drafts = new Map();
+  Array.from(sectionsEl.children).forEach((el, i) => {
+    const input = el.querySelector(".add-row input");
+    const section = state.sections[i];
+    if (input && input.value && section) drafts.set(section.id, input.value);
+  });
+
+  sectionsEl.replaceChildren(...state.sections.map(buildSection));
+
+  state.sections.forEach((section, i) => {
+    if (drafts.has(section.id)) {
+      sectionsEl.children[i].querySelector(".add-row input").value = drafts.get(section.id);
+    }
+  });
+
+  refreshCounts();
+
+  if (launchNameEl.value !== state.launchName) launchNameEl.value = state.launchName;
+  if (launchDateEl.value !== state.launchDate) launchDateEl.value = state.launchDate;
+}
+
+launchNameEl.addEventListener("input", () => {
+  state.launchName = launchNameEl.value;
+  save();
+});
+
+launchDateEl.addEventListener("input", () => {
+  state.launchDate = launchDateEl.value;
+  save();
+});
+
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const slug = (state.launchName || "team")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  link.href = url;
+  link.download = (slug || "team") + "-launch-checklist.json";
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+const importFile = document.getElementById("importFile");
+document.getElementById("importBtn").addEventListener("click", () => importFile.click());
+
+importFile.addEventListener("change", () => {
+  const file = importFile.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = normalize(JSON.parse(reader.result));
+      if (!parsed) throw new Error("that file is not a checklist export");
+      state = parsed;
+      save();
+      render();
+    } catch (err) {
+      window.alert("Could not import that file: " + err.message);
+    }
+    importFile.value = "";
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById("printBtn").addEventListener("click", () => window.print());
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (!window.confirm("Reset to the default template? All progress will be lost.")) return;
+  state = freshState();
+  save();
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

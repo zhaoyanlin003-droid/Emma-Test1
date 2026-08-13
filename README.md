@@ -2,6 +2,13 @@
 
 ## Team Launch Checklist
 
-A dependency-free, single-file web app for tracking a launch through **Planning**, **Content**, **Approvals**, and **Launch day**.
+Two dependency-free, single-file web apps for tracking a launch through **Planning**,
+**Content**, **Approvals**, and **Launch day**. Each is standalone, and they keep their
+progress separately.
 
-Open `launch-checklist/index.html` in any browser — see [launch-checklist/README.md](launch-checklist/README.md) for full instructions.
+| App | Open | Docs |
+| --- | --- | --- |
+| Original | `launch-checklist/index.html` | [README](launch-checklist/README.md) |
+| Standalone rebuild — adds launch name and target date, in-place progress updates | `team-launch-checklist/index.html` | [README](team-launch-checklist/README.md) |
+
+Open either `index.html` in any browser; no build step or server required.
