@@ -16,9 +16,6 @@
         <label for="priorityFilter">Priority</label>
         <select id="priorityFilter">
           <option value="all">All</option>
-          <option value="High">High</option>
-          <option value="Medium">Medium</option>
-          <option value="Low">Low</option>
         </select>
       </div>
 
@@ -26,14 +23,18 @@
         <label for="statusFilter">Status</label>
         <select id="statusFilter">
           <option value="all">All</option>
-          <option value="Backlog">Backlog</option>
-          <option value="Planned">Planned</option>
-          <option value="In Progress">In Progress</option>
         </select>
+      </div>
+
+      <div class="filter">
+        <button type="button" id="resetFilters" disabled>Reset filters</button>
       </div>
     </div>
 
+    <div id="activeFilters" class="active-filters" aria-live="polite"></div>
+
     <p id="resultCount" class="meta" aria-live="polite"></p>
+    <p id="dataSource" class="meta data-source"></p>
 
     <section id="cards" class="cards" aria-live="polite"></section>
   </main>
