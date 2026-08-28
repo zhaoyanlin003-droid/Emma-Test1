@@ -44,25 +44,33 @@ function matches(item, priority, status) {
     (status === "all" || item.status === status);
 }
 
+// Options are created once, so a filter's <option> elements are never replaced
+// while the user is interacting with it and the selection can't be dropped.
+function buildOptions(select, values) {
+  select.replaceChildren();
+  for (const value of ["all", ...values]) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.dataset.label = value === "all" ? "All" : value;
+    option.textContent = option.dataset.label;
+    select.append(option);
+  }
+}
+
 // Counts are contextual: each option shows how many requests it would show
-// given the *other* filter's current value.
-function buildOptions(select, key, values, otherKey, otherValue) {
-  const previous = select.value;
+// given the *other* filter's current value. Only the label text is rewritten,
+// never the option elements themselves, so the current selection is untouched.
+function updateCounts(select, key, otherKey, otherValue) {
   const inScope = requests.filter(
     (item) => otherValue === "all" || item[otherKey] === otherValue
   );
 
-  const options = [`<option value="all">All (${inScope.length})</option>`];
-  for (const value of values) {
-    const count = inScope.filter((item) => item[key] === value).length;
-    options.push(
-      `<option value="${escapeHtml(value)}">${escapeHtml(value)} (${count})</option>`
-    );
+  for (const option of select.options) {
+    const count = option.value === "all"
+      ? inScope.length
+      : inScope.filter((item) => item[key] === option.value).length;
+    option.textContent = `${option.dataset.label} (${count})`;
   }
-
-  select.innerHTML = options.join("");
-  select.value = previous || "all";
-  if (!select.value) select.value = "all";
 }
 
 function saveFilters(priority, status) {
@@ -89,8 +97,8 @@ function render() {
   const priority = priorityFilter.value;
   const status = statusFilter.value;
 
-  buildOptions(priorityFilter, "priority", priorities, "status", status);
-  buildOptions(statusFilter, "status", statuses, "priority", priority);
+  updateCounts(priorityFilter, "priority", "status", status);
+  updateCounts(statusFilter, "status", "priority", priority);
 
   const visible = requests.filter((item) => matches(item, priority, status));
 
@@ -120,8 +128,8 @@ const priorities = uniqueValues("priority", PRIORITY_ORDER);
 const statuses = uniqueValues("status", STATUS_ORDER);
 
 const saved = loadFilters();
-buildOptions(priorityFilter, "priority", priorities, "status", "all");
-buildOptions(statusFilter, "status", statuses, "priority", "all");
+buildOptions(priorityFilter, priorities);
+buildOptions(statusFilter, statuses);
 priorityFilter.value = priorities.includes(saved.priority) ? saved.priority : "all";
 statusFilter.value = statuses.includes(saved.status) ? saved.status : "all";
 
