@@ -36,6 +36,56 @@ label {
   margin-top: 0;
 }
 
+.filter {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+button {
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2937;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+button:disabled {
+  color: #94a3b8;
+  cursor: default;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #1f2937;
+  font-size: 0.8rem;
+}
+
+.badge-backlog {
+  background: #e2e8f0;
+}
+
+.badge-planned {
+  background: #dbeafe;
+}
+
+.badge-in-progress {
+  background: #fef3c7;
+}
+
+.badge-done {
+  background: #dcfce7;
+}
+
 .empty {
   color: #64748b;
   border: 1px dashed #cbd5e1;
