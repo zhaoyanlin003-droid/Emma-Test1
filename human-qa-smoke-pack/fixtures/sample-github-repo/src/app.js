@@ -20,6 +20,10 @@ const cards = document.querySelector("#cards");
 const resultCount = document.querySelector("#resultCount");
 
 let requests = [];
+const filterState = {
+  priority: "all",
+  status: "all",
+};
 
 function parseCsv(text) {
   const lines = text.trim().split(/\r?\n/);
@@ -69,12 +73,9 @@ function populateFilter(select, values, order) {
 }
 
 function render() {
-  const priority = priorityFilter.value;
-  const status = statusFilter.value;
-
   const visible = requests.filter((item) =>
-    (priority === "all" || item.priority === priority) &&
-    (status === "all" || item.status === status)
+    (filterState.priority === "all" || item.priority === filterState.priority) &&
+    (filterState.status === "all" || item.status === filterState.status)
   );
 
   resultCount.textContent =
@@ -96,8 +97,15 @@ function render() {
   `).join("");
 }
 
-priorityFilter.addEventListener("change", render);
-statusFilter.addEventListener("change", render);
+priorityFilter.addEventListener("change", (event) => {
+  filterState.priority = event.target.value;
+  render();
+});
+
+statusFilter.addEventListener("change", (event) => {
+  filterState.status = event.target.value;
+  render();
+});
 
 async function init() {
   requests = await loadRequests();
