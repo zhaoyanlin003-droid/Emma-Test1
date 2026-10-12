@@ -11,6 +11,22 @@ const statusFilter = document.querySelector("#statusFilter");
 const cards = document.querySelector("#cards");
 const resultCount = document.querySelector("#resultCount");
 
+function populateFilter(select, values) {
+  for (const value of values) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  }
+}
+
+function uniqueValues(key) {
+  return [...new Set(requests.map((item) => item[key]))];
+}
+
+populateFilter(priorityFilter, uniqueValues("priority"));
+populateFilter(statusFilter, uniqueValues("status"));
+
 function render() {
   const priority = priorityFilter.value;
   const status = statusFilter.value;
