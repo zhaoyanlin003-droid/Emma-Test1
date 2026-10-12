@@ -2,6 +2,7 @@
   "use strict";
 
   var STORAGE_KEY = "team-launch-checklist-v1";
+  var PRIORITIES = ["High", "Medium", "Low"];
 
   var DEFAULTS = [
     {
@@ -9,12 +10,12 @@
       title: "Planning",
       icon: "🗺️",
       items: [
-        "Define launch goals and success metrics",
-        "Set the target launch date",
-        "Identify stakeholders and owners",
-        "Agree on scope and non-goals",
-        "Build the project timeline",
-        "Assess risks and mitigation plans"
+        ["Define launch goals and success metrics", "High"],
+        ["Set the target launch date", "High"],
+        ["Identify stakeholders and owners", "Medium"],
+        ["Agree on scope and non-goals", "Medium"],
+        ["Build the project timeline", "Medium"],
+        ["Assess risks and mitigation plans", "Low"]
       ]
     },
     {
@@ -22,12 +23,12 @@
       title: "Content",
       icon: "✍️",
       items: [
-        "Draft announcement / blog post",
-        "Prepare product screenshots and demo",
-        "Write release notes and docs",
-        "Create social media assets",
-        "Prepare email campaign",
-        "Proofread all copy"
+        ["Draft announcement / blog post", "High"],
+        ["Prepare product screenshots and demo", "Medium"],
+        ["Write release notes and docs", "Medium"],
+        ["Create social media assets", "Low"],
+        ["Prepare email campaign", "Medium"],
+        ["Proofread all copy", "Low"]
       ]
     },
     {
@@ -35,12 +36,12 @@
       title: "Approvals",
       icon: "✅",
       items: [
-        "Legal and compliance sign-off",
-        "Security review complete",
-        "Brand and design review",
-        "Leadership / exec approval",
-        "Pricing and packaging confirmed",
-        "Support team briefed"
+        ["Legal and compliance sign-off", "High"],
+        ["Security review complete", "High"],
+        ["Brand and design review", "Medium"],
+        ["Leadership / exec approval", "High"],
+        ["Pricing and packaging confirmed", "Medium"],
+        ["Support team briefed", "Low"]
       ]
     },
     {
@@ -48,12 +49,12 @@
       title: "Launch Day",
       icon: "🎉",
       items: [
-        "Deploy to production",
-        "Smoke test critical flows",
-        "Publish announcement and assets",
-        "Monitor dashboards and error rates",
-        "Share launch in team channels",
-        "Capture feedback and log issues"
+        ["Deploy to production", "High"],
+        ["Smoke test critical flows", "High"],
+        ["Publish announcement and assets", "High"],
+        ["Monitor dashboards and error rates", "Medium"],
+        ["Share launch in team channels", "Medium"],
+        ["Capture feedback and log issues", "Low"]
       ]
     }
   ];
@@ -63,9 +64,16 @@
   var board = document.getElementById("board");
   var overallFill = document.getElementById("overallFill");
   var overallLabel = document.getElementById("overallLabel");
+  var priorityFilter = document.getElementById("priorityFilter");
+  var statusFilter = document.getElementById("statusFilter");
+  var filterSummary = document.getElementById("filterSummary");
 
   function uid() {
     return "i" + Math.random().toString(36).slice(2, 9);
+  }
+
+  function normalizePriority(value) {
+    return PRIORITIES.indexOf(value) === -1 ? "Medium" : value;
   }
 
   function makeDefaultState() {
@@ -74,11 +82,22 @@
         id: section.id,
         title: section.title,
         icon: section.icon,
-        items: section.items.map(function (text) {
-          return { id: uid(), text: text, done: false };
+        items: section.items.map(function (entry) {
+          return { id: uid(), text: entry[0], priority: entry[1], done: false };
         })
       };
     });
+  }
+
+  // Ensure every item has a valid priority (migrates checklists saved before
+  // filters existed, where items had no priority field).
+  function normalizeState(data) {
+    data.forEach(function (section) {
+      (section.items || []).forEach(function (item) {
+        item.priority = normalizePriority(item.priority);
+      });
+    });
+    return data;
   }
 
   function load() {
@@ -87,7 +106,7 @@
       if (!raw) return makeDefaultState();
       var parsed = JSON.parse(raw);
       if (!Array.isArray(parsed) || !parsed.length) return makeDefaultState();
-      return parsed;
+      return normalizeState(parsed);
     } catch (e) {
       return makeDefaultState();
     }
@@ -117,13 +136,36 @@
     return total === 0 ? 0 : Math.round((done / total) * 100);
   }
 
+  // A single source of truth for "does this item pass the active filters?".
+  // render() reads both dropdowns fresh on every call, so changing either
+  // filter preserves the other — they always compose.
+  function matchesFilters(item, priority, status) {
+    var priorityOk = priority === "all" || item.priority === priority;
+    var statusOk =
+      status === "all" ||
+      (status === "done" && item.done) ||
+      (status === "todo" && !item.done);
+    return priorityOk && statusOk;
+  }
+
   function render() {
     board.innerHTML = "";
+
+    var priority = priorityFilter.value;
+    var status = statusFilter.value;
+    var visibleCount = 0;
+    var totalCount = 0;
 
     state.forEach(function (section) {
       var done = section.items.filter(function (i) { return i.done; }).length;
       var total = section.items.length;
       var p = pct(done, total);
+
+      var matching = section.items.filter(function (i) {
+        return matchesFilters(i, priority, status);
+      });
+      visibleCount += matching.length;
+      totalCount += total;
 
       var el = document.createElement("section");
       el.className = "section";
@@ -150,7 +192,7 @@
       var list = document.createElement("ul");
       list.className = "items";
 
-      section.items.forEach(function (item) {
+      matching.forEach(function (item) {
         var li = document.createElement("li");
         li.className = "item" + (item.done ? " done" : "");
 
@@ -168,6 +210,10 @@
         label.htmlFor = item.id;
         label.textContent = item.text;
 
+        var badge = document.createElement("span");
+        badge.className = "badge badge-" + item.priority.toLowerCase();
+        badge.textContent = item.priority;
+
         var remove = document.createElement("button");
         remove.className = "remove";
         remove.type = "button";
@@ -181,27 +227,53 @@
 
         li.appendChild(cb);
         li.appendChild(label);
+        li.appendChild(badge);
         li.appendChild(remove);
         list.appendChild(li);
       });
 
       el.appendChild(list);
 
+      if (matching.length === 0) {
+        var empty = document.createElement("p");
+        empty.className = "section-empty";
+        empty.textContent = total === 0
+          ? "No tasks yet."
+          : "No tasks match the current filters.";
+        el.appendChild(empty);
+      }
+
       var form = document.createElement("form");
       form.className = "add-form";
       var input = document.createElement("input");
       input.type = "text";
       input.placeholder = "Add a task…";
+      var prioritySelect = document.createElement("select");
+      prioritySelect.className = "add-priority";
+      prioritySelect.title = "Priority for the new task";
+      PRIORITIES.forEach(function (name) {
+        var opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        if (name === "Medium") opt.selected = true;
+        prioritySelect.appendChild(opt);
+      });
       var addBtn = document.createElement("button");
       addBtn.type = "submit";
       addBtn.textContent = "+";
       form.appendChild(input);
+      form.appendChild(prioritySelect);
       form.appendChild(addBtn);
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         var text = input.value.trim();
         if (!text) return;
-        section.items.push({ id: uid(), text: text, done: false });
+        section.items.push({
+          id: uid(),
+          text: text,
+          priority: normalizePriority(prioritySelect.value),
+          done: false
+        });
         input.value = "";
         save();
         render();
@@ -215,6 +287,11 @@
     var overall = pct(c.done, c.total);
     overallFill.style.width = overall + "%";
     overallLabel.textContent = overall + "% complete";
+
+    var filtered = priority !== "all" || status !== "all";
+    filterSummary.textContent = filtered
+      ? "Showing " + visibleCount + " of " + totalCount + " tasks"
+      : "";
   }
 
   function escapeHtml(str) {
@@ -222,6 +299,11 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
     });
   }
+
+  // Filters: each one just re-renders. render() reads both dropdown values,
+  // so adjusting the status filter keeps the current priority filter and vice versa.
+  priorityFilter.addEventListener("change", render);
+  statusFilter.addEventListener("change", render);
 
   // Toolbar actions
   document.getElementById("resetBtn").addEventListener("click", function () {

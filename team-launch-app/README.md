@@ -8,7 +8,9 @@ organizes work into four sections — **Planning**, **Content**, **Approvals**, 
 
 - Four preset sections with sensible starter tasks for each launch phase
 - Check items off with live per-section and overall progress bars
-- Add your own tasks or remove ones you don't need
+- Each task has a **priority** (High / Medium / Low), shown as a badge
+- Filter by **priority** and **status** (To do / Done) — the two filters compose, so changing one keeps the other applied
+- Add your own tasks (with a priority) or remove ones you don't need
 - Progress is saved automatically in your browser (via `localStorage`)
 - **Export** your checklist to a JSON file and **Import** it back later or on another machine
 - **Reset to defaults** to start a fresh launch

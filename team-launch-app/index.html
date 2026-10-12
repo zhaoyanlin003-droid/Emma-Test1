@@ -24,6 +24,29 @@
     </div>
   </header>
 
+  <div class="filters-bar">
+    <div class="wrap filters">
+      <div class="filter">
+        <label for="priorityFilter">Priority</label>
+        <select id="priorityFilter">
+          <option value="all">All</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+      <div class="filter">
+        <label for="statusFilter">Status</label>
+        <select id="statusFilter">
+          <option value="all">All</option>
+          <option value="todo">To do</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+      <p id="filterSummary" class="filter-summary" aria-live="polite"></p>
+    </div>
+  </div>
+
   <main id="board" class="board wrap"></main>
 
   <footer class="app-footer wrap">
