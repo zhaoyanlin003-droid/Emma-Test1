@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team Launch Checklist</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="wrap">
+      <h1>🚀 Team Launch Checklist</h1>
+      <p class="subtitle">Track everything from planning to launch day. Your progress saves automatically in this browser.</p>
+      <div class="overall">
+        <div class="overall-bar"><div id="overallFill" class="overall-fill"></div></div>
+        <span id="overallLabel" class="overall-label">0% complete</span>
+      </div>
+      <div class="toolbar">
+        <button id="exportBtn" class="btn" type="button">Export JSON</button>
+        <button id="importBtn" class="btn" type="button">Import JSON</button>
+        <button id="resetBtn" class="btn btn-ghost" type="button">Reset to defaults</button>
+        <input id="importFile" type="file" accept="application/json" hidden />
+      </div>
+    </div>
+  </header>
+
+  <div class="filters-bar">
+    <div class="wrap filters">
+      <div class="filter">
+        <label for="priorityFilter">Priority</label>
+        <select id="priorityFilter">
+          <option value="all">All</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+      <div class="filter">
+        <label for="statusFilter">Status</label>
+        <select id="statusFilter">
+          <option value="all">All</option>
+          <option value="todo">To do</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+      <p id="filterSummary" class="filter-summary" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <main id="board" class="board wrap"></main>
+
+  <footer class="app-footer wrap">
+    <p>Open <code>index.html</code> in any browser — no server or build step required.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
