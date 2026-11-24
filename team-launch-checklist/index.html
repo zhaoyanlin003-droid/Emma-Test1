@@ -6,13 +6,13 @@
 <title>Team Launch Checklist</title>
 <style>
   :root {
-    --bg: #f5f7fb;
+    --bg: #f5f6f3;
     --card: #ffffff;
     --ink: #1b2333;
     --muted: #6b7689;
     --line: #e3e8f0;
-    --accent: #2f6feb;
-    --done: #1f9d55;
+    --accent: #176b58;
+    --done: #176b58;
   }
   * { box-sizing: border-box; }
   body {
@@ -22,13 +22,21 @@
     color: var(--ink);
   }
   header {
-    background: linear-gradient(135deg, #2f6feb, #6a4ce0);
+    background: #173d34;
     color: #fff;
-    padding: 28px 24px;
+    padding: 40px max(24px, calc((100vw - 1120px) / 2));
   }
-  header h1 { margin: 0 0 6px; font-size: 24px; }
+  header h1 { margin: 12px 0 10px; font-size: clamp(28px, 4vw, 40px); letter-spacing: -1px; }
   header p { margin: 0; opacity: .85; font-size: 14px; }
-  .wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
+  .wrap { max-width: 1168px; margin: 0 auto; padding: 24px; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #b8d9c9; }
+  .intro { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 10px 0 22px; }
+  .intro h2 { margin: 0 0 5px; font-size: 21px; }
+  .intro p { margin: 0; font-size: 14px; color: var(--muted); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  #sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  #notice { color: #b42318; font-size: 14px; }
+  :focus-visible { outline: 3px solid #79bbaa; outline-offset: 3px; }
   .bar {
     background: var(--card);
     border: 1px solid var(--line);
@@ -57,7 +65,7 @@
     border: 1px solid var(--line);
     border-radius: 12px;
     padding: 18px 20px;
-    margin-bottom: 18px;
+    margin-bottom: 0;
   }
   section h2 { margin: 0 0 4px; font-size: 17px; }
   section .hint { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
@@ -84,21 +92,46 @@
   }
   .owner::placeholder { color: #a7b0c0; }
   .count { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .count { background: #edf3ef; padding: 4px 9px; border-radius: 20px; }
   .head { display: flex; justify-content: space-between; align-items: baseline; }
-  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 8px 0 32px; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 28px 0 16px; }
+  @media (max-width: 760px) {
+    #sections { grid-template-columns: 1fr; }
+    .intro { align-items: flex-start; flex-direction: column; }
+    .wrap { padding: 16px; }
+    .owner { width: 90px; }
+  }
+  @media print {
+    header { background: none; color: var(--ink); padding: 0; }
+    .actions, footer { display: none; }
+    section { break-inside: avoid; }
+    body { background: white; }
+  }
 </style>
 </head>
 <body>
 <header>
+  <div class="eyebrow">TEAM WORKSPACE / LAUNCH PLAYBOOK</div>
   <h1>Team Launch Checklist</h1>
-  <p>Track everything from planning through launch day. Progress saves in your browser.</p>
+  <p>A clear plan. A confident team. A launch with nothing left behind.</p>
 </header>
 
 <div class="wrap">
+  <div class="intro">
+    <div>
+      <h2>Your path to launch</h2>
+      <p>Assign owners, check off tasks, and keep every phase on track.</p>
+    </div>
+    <div class="actions">
+      <button id="export" type="button">Export checklist</button>
+      <button id="print" type="button">Print / PDF</button>
+      <button id="reset" type="button">Reset all</button>
+    </div>
+  </div>
+  <p id="notice" role="alert" hidden></p>
   <div class="bar">
-    <strong id="summary">0 of 0 done</strong>
-    <div class="track"><div class="fill" id="fill"></div></div>
-    <button id="reset" type="button">Reset all</button>
+    <strong id="summary" aria-live="polite">0 of 24 done</strong>
+    <div class="track" role="progressbar" aria-label="Launch readiness" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0"><div class="fill" id="fill"></div></div>
   </div>
 
   <div id="sections"></div>
@@ -165,13 +198,39 @@ const SECTIONS = [
 const KEY = "team-launch-checklist-v1";
 const state = load();
 
+function reportError(message, error) {
+  console.error(message, error);
+  const notice = document.getElementById("notice");
+  notice.textContent = message;
+  notice.hidden = false;
+}
+
+function validState(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value) &&
+    Object.values(value).every(entry => entry !== null && typeof entry === "object" &&
+      typeof entry.done === "boolean" && typeof entry.owner === "string");
+}
+
 function load() {
-  try { return JSON.parse(localStorage.getItem(KEY)) || {}; }
-  catch { return {}; }
+  try {
+    const stored = localStorage.getItem(KEY);
+    if (stored === null) return {};
+    const value = JSON.parse(stored);
+    if (!validState(value)) throw new Error("Invalid saved checklist");
+    return value;
+  } catch (error) {
+    reportError("Saved progress could not be loaded. You can still use and export this checklist.", error);
+    return {};
+  }
 }
 
 function save() {
-  localStorage.setItem(KEY, JSON.stringify(state));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(state));
+    document.getElementById("notice").hidden = true;
+  } catch (error) {
+    reportError("Progress could not be saved in this browser. Export your checklist before closing.", error);
+  }
 }
 
 function render() {
@@ -193,9 +252,10 @@ function render() {
       box.checked = entry.done;
       box.id = key;
       box.addEventListener("change", () => {
-        state[key] = { ...entry, done: box.checked };
+        state[key] = { done: box.checked, owner: owner.value };
         save();
-        render();
+        li.classList.toggle("done", box.checked);
+        updateProgress();
       });
 
       const label = document.createElement("label");
@@ -206,6 +266,7 @@ function render() {
       owner.type = "text";
       owner.className = "owner";
       owner.placeholder = "Owner";
+      owner.setAttribute("aria-label", "Owner for " + text);
       owner.value = entry.owner;
       owner.addEventListener("input", () => {
         state[key] = { ...state[key], done: box.checked, owner: owner.value };
@@ -235,11 +296,44 @@ function render() {
     host.append(el);
   });
 
-  const total = SECTIONS.reduce((n, s) => n + s.items.length, 0);
-  const done = Object.values(state).filter(v => v.done).length;
+  updateProgress();
+}
+
+function updateProgress() {
+  let total = 0;
+  let done = 0;
+  SECTIONS.forEach((section, index) => {
+    const completed = section.items.filter((_, i) => state[section.id + ":" + i]?.done).length;
+    total += section.items.length;
+    done += completed;
+    document.querySelectorAll(".count")[index].textContent = completed + " / " + section.items.length;
+  });
   document.getElementById("summary").textContent = done + " of " + total + " done";
   document.getElementById("fill").style.width = total ? (done / total * 100) + "%" : "0%";
+  document.querySelector(".track").setAttribute("aria-valuemax", total);
+  document.querySelector(".track").setAttribute("aria-valuenow", done);
 }
+
+document.getElementById("export").addEventListener("click", () => {
+  const checklist = SECTIONS.map(section => ({
+    section: section.title,
+    tasks: section.items.map((task, i) => ({
+      task,
+      done: state[section.id + ":" + i]?.done || false,
+      owner: state[section.id + ":" + i]?.owner || ""
+    }))
+  }));
+  const url = URL.createObjectURL(new Blob([JSON.stringify(checklist, null, 2)], { type: "application/json" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "team-launch-checklist.json";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+document.getElementById("print").addEventListener("click", () => window.print());
 
 document.getElementById("reset").addEventListener("click", () => {
   if (!confirm("Clear all checkmarks and owners?")) return;
